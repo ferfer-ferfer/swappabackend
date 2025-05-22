@@ -52,24 +52,40 @@ await User.update(
 router.delete('/comments/:id', authenticate, async (req, res) => {
   try {
     const commentId = req.params.id;
-    const senderId = req.user.ID_Users;  // From auth token
+    const senderId = req.user.ID_Users;
 
-    // Find the comment to ensure it exists and belongs to the sender
+    // Find the comment
     const comment = await Comment.findOne({ where: { id: commentId } });
 
     if (!comment) {
       return res.status(404).json({ error: 'Comment not found' });
     }
 
-    // Optional: Only allow sender to delete their own comments
+    // Ensure only sender can delete
     if (comment.sender_id !== senderId) {
       return res.status(403).json({ error: 'Not authorized to delete this comment' });
     }
-      const count = await Comment.count({
-      where: { receiver_id: receiverId }
-    }); 
-    user.nbr_rate = count;
+
+    const receiver_id = comment.receiver_id;
+
+    // ✅ First delete the comment
     await comment.destroy();
+
+    // Then recalculate receiver's rating and nbr_rate
+    const receiverComments = await Comment.findAll({
+      where: { receiver_id },
+      attributes: ['rating']
+    });
+
+    const nbr_rate = receiverComments.length;
+    const totalRating = receiverComments.reduce((sum, c) => sum + c.rating, 0);
+    const rate = nbr_rate > 0 ? totalRating / nbr_rate : 0;
+
+    // ✅ Update User's rate and nbr_rate
+    await User.update(
+      { nbr_rate: nbr_rate, rate: rate },
+      { where: { ID_Users: receiver_id } }
+    );
 
     res.status(200).json({ message: 'Comment deleted successfully' });
   } catch (error) {
@@ -77,6 +93,7 @@ router.delete('/comments/:id', authenticate, async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
 
 
 // Get all comments for a specific user
