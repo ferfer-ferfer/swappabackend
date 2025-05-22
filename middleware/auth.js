@@ -21,6 +21,3 @@ const authenticateJWT = async (req, res, next) => {
 };
 
 module.exports = authenticateJWT;
-
-
-
