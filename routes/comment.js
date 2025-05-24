@@ -22,8 +22,6 @@ router.post('/comments', authenticate, async (req, res) => {
       comment,
       rating
     });
-  console.log('New comment created:', newComment);
-    // Update nbr_rate for receiver
     // Get all comments for the receiver to calculate the average rating
     const receiverComments = await Comment.findAll({
       where: { receiver_id },
@@ -100,17 +98,18 @@ router.delete('/comments/:id', authenticate, async (req, res) => {
 router.get('/comments/:userId', async (req, res) => {
   try {
     const userId = req.params.userId;
-const comments = await Comment.findAll({
-  where: { receiver_id: userId },
-  attributes: ['id', 'comment', 'rating', 'sender_id', 'createdAt'],
-  include: [
-    {
-      model: User,
-      as: 'sender',      // Make sure you defined this association in your models
-      attributes: ['ID_Users', 'Users_name', 'first_name', 'last_name']
-    }
-  ]
-});
+    const comments = await Comment.findAll({
+      where: { receiver_id: userId },
+      attributes: ['id', 'comment', 'rating', 'sender_id', 'createdAt'],
+      include: [
+        {
+          model: User,
+          as: 'sender',
+          attributes: ['ID_Users', 'Users_name', 'first_name', 'last_name', 'profile_picture']
+        }
+      ],
+      order: [['createdAt', 'DESC']]
+    });
 
     res.status(200).json(comments);
   } catch (error) {
@@ -123,17 +122,20 @@ const comments = await Comment.findAll({
 // GET all comments for a user
 router.get('/comments', authenticate, async (req, res) => {
   try {
-    const userId = req.user.UsersId;  
-const comments = await Comment.findAll({
-  where: { receiver_id: userId },
-  include: [{
-    model: User,
-    as: 'sender',
-    attributes: ['Users_name', 'first_name', 'last_name', 'profile_picture'] 
-  }],
-  order: [['createdAt', 'DESC']]
-});
-
+    const userId =  req.user.ID_Users;  
+    const comments = await Comment.findAll({
+      where: { receiver_id: userId },
+      attributes: ['id', 'comment', 'rating', 'sender_id', 'createdAt'],
+      include: [
+        {
+          model: User,
+          as: 'sender',
+          attributes: ['ID_Users', 'Users_name', 'first_name', 'last_name', 'profile_picture']
+        }
+      ],
+      order: [['createdAt', 'DESC']]
+    });
+console.log('Fetched comments:', comments);
 
     res.status(200).json(comments);
   } catch (error) {

@@ -27,6 +27,8 @@ const Class = require('./class')(sequelize, DataTypes);
 const TeachingSession = require('./teachingsession')(sequelize, DataTypes);
 const Notification = require('./Notification')(sequelize, DataTypes);
 const Comment = require('./comment')(sequelize, DataTypes);
+const Feedback = require('./feedback')(sequelize, DataTypes);
+const ClassFile = require('./Classfile')(sequelize, DataTypes);
 
 
 
@@ -57,7 +59,14 @@ Request.belongsTo(Skill, { foreignKey: 'skill_id' });
 Class.belongsTo(Request, { foreignKey: 'request_id' });
 Class.belongsTo(User, { foreignKey: 'sender_id', as: 'Sender' });
 Class.belongsTo(User, { foreignKey: 'reciver_id', as: 'Receiver' });
+Class.belongsTo(Skill, { as: 'skill', foreignKey: 'skill_id' });
 
+
+// And in skill.js (if needed):
+Skill.hasMany(Class, {
+  foreignKey: 'skill_id',
+  as: 'classes'
+});
 Comment.belongsTo(User, { foreignKey: 'sender_id', as: 'sender'});
 
 module.exports = {
@@ -73,5 +82,7 @@ module.exports = {
   Class,
   Notification,
   Comment,
+  Feedback,
+  ClassFile
 };
 

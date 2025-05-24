@@ -70,8 +70,6 @@ router.post('/info', authenticateJWT, upload.single('profile_picture'), async (r
   }
 });
 
-module.exports = router;
-
 
 
 
@@ -338,25 +336,46 @@ router.get('/profile', authenticateJWT,async (req, res) => {
   const userId =  req.user.ID_Users;
 
   try {
-    const user = await User.findByPk(userId, {
+    const row = await User.findByPk(userId, {
       attributes: [
-  'ID_Users',        
-  'Users_name',      
-  'first_name',      
-  'last_name',      
-  'email',           
-  'birthday',        
-  'SP',              
-  'profile_picture'  
-],
-     
+        'ID_Users',
+        'Users_name',
+        'first_name',
+        'last_name',
+        'email',
+        'birthday',
+        'bio',
+        'profile_picture',
+        'telegram',
+        'discord',
+        'rate',
+        'location'
+      ]
     });
 
-    if (!user) {
+
+    if (!row) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    res.status(200).json(user);
+    // map + calculate age
+    const user = {
+      id:               row.ID_Users,
+      Users_name:       row.Users_name,
+      first_name:       row.first_name,
+      last_name:        row.last_name,
+      email:            row.email,
+      birthday:         row.birthday,          
+      age:              calcAge(row.birthday),
+      about:              row.bio,
+      profile_picture:  row.profile_picture,
+      telegram:         row.telegram,
+      discord:          row.discord,
+      rating:           row.rate,
+      location:         row.location
+    };
+
+    res.json(user);
   } catch (err) {
     console.error("❌ Error fetching profile:", err);
     res.status(500).json({ error: 'Failed to fetch profile' });
@@ -439,6 +458,111 @@ router.get('/profile/:userid', async (req, res) => {
   } catch (err) {
     console.error('GET /profile error:', err);
     res.status(500).json({ error: 'Failed to fetch profile' });
+  }
+});
+
+
+
+// update profile
+router.post('/update-profile', authenticateJWT, async (req, res) => {
+  const { Users_name, location, bio, telegram, discord, email } = req.body;
+
+  try {
+    const user = await User.findByPk(req.user.ID_Users);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    const updatedFields = {};
+
+    // Username uniqueness check
+    if (Users_name && Users_name !== user.Users_name) {
+      const existingUser = await User.findOne({ where: { Users_name } });
+      if (existingUser) {
+        return res.status(400).json({ message: 'Username already taken.' });
+      }
+      updatedFields.Users_name = Users_name.trim();
+    }
+
+    // Email uniqueness check
+    if (email && email !== user.email) {
+      const existingEmail = await User.findOne({ where: { email } });
+      if (existingEmail) {
+        return res.status(400).json({ message: 'Email already in use.' });
+      }
+      updatedFields.email = email.trim();
+    }
+
+    if (location && user.location !== location) updatedFields.location = location.trim();
+    if (bio && user.bio !== bio) updatedFields.bio = bio.trim();
+    if (telegram && user.telegram !== telegram) updatedFields.telegram = telegram.trim();
+    if (discord && user.discord !== discord) updatedFields.discord = discord.trim();
+
+    // If something changed
+    if (Object.keys(updatedFields).length > 0) {
+      await user.update(updatedFields);
+      const updatedUser = await User.findByPk(user.ID_Users); // refresh
+      return res.status(200).json({
+        message: `${Object.keys(updatedFields).length} field(s) updated.`,
+        user: updatedUser,
+      });
+    }
+
+    return res.status(200).json({ message: 'No changes detected.' });
+
+  } catch (error) {
+    console.error('Error in /update-profile:', error);
+    return res.status(500).json({ message: 'Server error', error });
+  }
+});
+
+// get contact
+
+router.get('/contacts', authenticateJWT, async (req, res) => {
+  try {
+    const userId = req.user.ID_Users; // assuming your JWT sets this
+
+    const user = await User.findByPk(userId, {
+      attributes: ['discord', 'telegram', 'email'] // select only these fields
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json({
+      discord: user.discord || '',
+      telegram: user.telegram || '',
+      email: user.email || '',
+    });
+  } catch (error) {
+    console.error('Error fetching user contacts:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+
+// Upload Photo
+router.post('/upload-profile-picture', authenticateJWT, upload.single('profile_picture'), async (req, res) => {
+  try {
+    const user = await User.findByPk(req.user.ID_Users);
+    if (!user) return res.status(404).json({ message: 'User not found.' });
+
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded.' });
+    }
+
+
+      const host = req.protocol + '://' + req.get('host');
+      const profileUrl = `${host}:80/uploads/profile_pictures/${req.file.filename}`;
+
+    await user.update({ profile_picture: profileUrl });
+
+    return res.status(200).json({
+      message: 'Profile picture uploaded successfully.',
+      profile_picture: profileUrl,
+    });
+  } catch (error) {
+    console.error('Upload error:', error);
+    return res.status(500).json({ message: 'Server error during upload.', error });
   }
 });
 

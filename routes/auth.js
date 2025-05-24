@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const router = express.Router();
 const { User } = require('../models');
-const sendMail = require('../config/mailer'); 
+const {sendMail} = require('../config/mailer'); 
 const { contactMail } = require('../config/mailer');
 const passport = require("passport");
 const authController = require("../controllers/authController");
@@ -37,8 +37,27 @@ router.post('/register', async (req, res) => {
       status: 'EnLigne',
     });
 
-    await sendMail(email, 'Verify Your Email', `Swapa Team . \n \n Your verification code is: ${verificationCode} \n \n Please enter this code to verify your email address. `)
-    .then(info => {
+ await sendMail(
+  email,
+  'Email Verification - SWAPA',
+  `
+Dear ${last_name} ${first_name},
+
+Thank you for signing up with SWAPA, the Skills Exchange Platform.
+
+To complete your registration, please use the verification code below:
+
+🔐 Verification Code: ${verificationCode}
+
+Enter this code in the verification field to confirm your email address and activate your account.
+
+If you did not sign up for SWAPA,  please ignore this email or contact our support team.
+
+Best regards,  
+The SWAPA Team  
+`
+)
+ .then(info => {
       console.log("Email sent:", info);
     })
     .catch(error => {
@@ -69,7 +88,7 @@ router.post('/verify', async (req, res) => {
     user.isVerified = true;
     user.verificationCode = null;
     await user.save();
-    const token = jwt.sign({ ID_Users: user.ID_Users }, process.env.JWT_SECRET_KEY, { expiresIn: '1h' });
+     const token = jwt.sign({ ID_Users: user.ID_Users }, process.env.JWT_SECRET_KEY, { expiresIn: '7h' });
     console.log("User ID:", user.ID_Users);
     console.log("JWT_SECRET_KEY:", process.env.JWT_SECRET_KEY);  // Make sure it's not undefined
 
@@ -94,10 +113,11 @@ router.post('/login', async (req, res) => {
     }
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(401).json({ message: 'Invalid email or password' });
-
-     const token = jwt.sign({ ID_Users: user.ID_Users }, process.env.JWT_SECRET_KEY, { expiresIn: '1h' });
+      const complet = user.profileCompleted;
+      const verified = user.isVerified;
+     const token = jwt.sign({ ID_Users: user.ID_Users }, process.env.JWT_SECRET_KEY, { expiresIn: '7h' });
     console.log("User ID:", user.ID_Users);
-    return res.status(200).json({ message: 'Login successful', token });
+    return res.status(200).json({ message: 'Login successful', token , complet ,verified });
   } catch (error) {
     console.error('Login error:', error);
     return res.status(500).json({ message: 'Server error' });
@@ -117,8 +137,25 @@ router.post('/recover', async (req, res) => {
     await user.save();
 
   
-    await sendMail(email, 'Password Reset Code', `Swapa Team . \n \n Your password reset code is: ${code} \n \n  Please enter this code to reset your password. `)
-    .then(info => {
+   await sendMail(
+  email,
+  'Password Reset Request - SWAPA',
+  `
+Dear user,
+
+We received a request to reset your password for your SWAPA account.
+
+🔐 Password Reset Code: ${code}
+
+Please enter this code on the password reset page to proceed. If you did not request a password reset, please ignore this email or contact our support team.
+
+For your security, this code will expire shortly.
+
+Best regards,  
+The SWAPA Team
+`
+)
+ .then(info => {
       console.log("Email sent:", info);
     })
     .catch(error => {
@@ -203,9 +240,19 @@ router.post('/contact', async (req, res) => {
   }
 
   try {
-    const fullMessage = `You have a new contact form submission:\n \n Name: ${name}\n Email: ${email}\n\n Message:\n ${message} `;
+ const fullMessage = `
+📬 New Contact Form Submission
 
-    await contactMail(email, fullMessage); 
+Name: ${name}
+Email: ${email}
+
+Message:
+${message}
+
+––––––––––––––––––––––
+This message was sent via the contact form on your website.
+`;
+await contactMail(email, fullMessage);
 
     res.status(200).json({ message: 'Message sent successfully!' });
   } catch (error) {
