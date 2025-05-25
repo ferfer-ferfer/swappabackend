@@ -1,8 +1,8 @@
 const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const FacebookStrategy = require("passport-facebook").Strategy;
-
 const { User } = require("../models"); // Adjust path if needed
+console.log("GOOGLE_CLIENT_ID:", process.env.GOOGLE_CLIENT_ID);
 
 passport.use(
   new GoogleStrategy(
@@ -14,26 +14,20 @@ passport.use(
     async (accessToken, refreshToken, profile, done) => {
       try {
         let user = await User.findOne({ where: { email: profile.emails[0].value } });
-        const isNewUser = !user;
-
+         const newUser = !user;
         if (!user) {
           user = await User.create({
             email: profile.emails[0].value,
             provider: "google",
           });
         }
-
-        // Attach custom property (won’t affect DB)
-        user.isNewUser = isNewUser;
-
-        return done(null, user);
+        return done(null, user, newUser);
       } catch (err) {
         return done(err, null);
       }
     }
   )
 );
-
 
 passport.use(
   new FacebookStrategy(
@@ -46,34 +40,31 @@ passport.use(
     async (accessToken, refreshToken, profile, done) => {
       try {
         let user = await User.findOne({ where: { email: profile.emails[0].value } });
-        const isNewUser = !user;
+         const newUser = !user;
         if (!user) {
           user = await User.create({
             email: profile.emails[0].value,
             provider: "facebook",
           });
         }
-        user.dataValues.isNewUser = isNewUser;
         return done(null, user);
       } catch (err) {
-        return done(err, null);
+        return done(err, null, newUser);
       }
     }
   )
 );
 
-// Serialize and deserialize user for session support
 passport.serializeUser((user, done) => {
-  done(null, user.ID_Users);
+  done(null, user. ID_Users);
 });
 
-passport.deserializeUser(async (ID_Users, done) => {
+passport.deserializeUser(async ( ID_Users, done) => {
   try {
-    const user = await User.findByPk(ID_Users);
+    const user = await User.findByPk( ID_Users);
     done(null, user);
   } catch (err) {
     done(err, null);
   }
 });
-
 module.exports = passport;

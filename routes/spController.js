@@ -19,7 +19,6 @@ router.put('/complete-profile', authenticateJWT, async (req, res) => {
       return res.status(400).json({ message: 'profile alredy completed' });
     }
 
-   
     user.profileCompleted = true;
     await user.save();
 
@@ -54,6 +53,7 @@ console.log(decoded);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
+    console.log("user", user);
 
     return res.status(200).json({ spPoints: user.SP });
   } catch (err) {

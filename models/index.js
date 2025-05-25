@@ -57,8 +57,8 @@ Request.belongsTo(User, { foreignKey: 'reciver_id', as: 'Receiver' });
 Request.belongsTo(Skill, { foreignKey: 'skill_id' });
 
 Class.belongsTo(Request, { foreignKey: 'request_id' });
-Class.belongsTo(User, { foreignKey: 'sender_id', as: 'Sender' });
-Class.belongsTo(User, { foreignKey: 'reciver_id', as: 'Receiver' });
+Class.belongsTo(User, { foreignKey: 'sender_id', as: 'Student' });
+Class.belongsTo(User, { foreignKey: 'reciver_id', as: 'Teacher' });
 Class.belongsTo(Skill, { as: 'skill', foreignKey: 'skill_id' });
 
 

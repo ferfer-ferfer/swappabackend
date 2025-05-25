@@ -84,7 +84,6 @@ router.post('/verify', async (req, res) => {
       return res.status(400).json({ message: 'Invalid verification code.' });
     }
 
-    user.SP = 10 ;
     user.isVerified = true;
     user.verificationCode = null;
     await user.save();

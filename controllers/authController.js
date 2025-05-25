@@ -4,7 +4,8 @@ exports.oauthSuccess = (req, res) => {
   try {
     const user = req.user;
     const token = generateToken(user.ID_Users); // Assuming user.ID_Users is the unique identifier for the user
-    const isNew = user?.dataValues?.isNewUser ? "true" : "false";
+    const isNew = user?.newUser ? "true" : "false";
+
 
 
     // Redirect with both token and newUser=true/false

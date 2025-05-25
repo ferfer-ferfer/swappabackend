@@ -6,7 +6,7 @@ const calculateSP = async (userId, activity) => {
   const hours = activity.value;
 
   if (activity.type === 'profile-completion') {
-    spEarned = 10;
+    spEarned = 5;
 
   } else if (activity.type === 'teaching') {
     if (hours === 0.25) {
@@ -51,6 +51,7 @@ const calculateSP = async (userId, activity) => {
     // Fetch and update user stats
     const user = await User.findByPk(userId);
 
+    
     if (user) {
       user.SP += spEarned;
 
