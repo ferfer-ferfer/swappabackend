@@ -13,15 +13,19 @@ passport.use(
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
-        let user = await User.findOne({ where: { email: profile.emails[0].value } });
-         const newUser = !user;
+        let user = await User.findOne({ where: { email: profile.emails[0].value } });  
         if (!user) {
           user = await User.create({
             email: profile.emails[0].value,
             provider: "google",
           });
-        }
-        return done(null, user, newUser);
+
+         user.newUser = true;
+         } else {
+         user.newUser = false;
+       }
+       return done(null, user);
+        
       } catch (err) {
         return done(err, null);
       }
@@ -40,14 +44,16 @@ passport.use(
     async (accessToken, refreshToken, profile, done) => {
       try {
         let user = await User.findOne({ where: { email: profile.emails[0].value } });
-         const newUser = !user;
-        if (!user) {
-          user = await User.create({
-            email: profile.emails[0].value,
-            provider: "facebook",
-          });
-        }
-        return done(null, user);
+      if (!user) {
+      user = await User.create({
+      email: profile.emails[0].value,
+      provider: "facebook",
+     });
+     user.newUser = true;
+    } else {
+       user.newUser = false;
+     }
+      return done(null, user);
       } catch (err) {
         return done(err, null, newUser);
       }

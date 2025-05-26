@@ -40,21 +40,11 @@ module.exports = (sequelize, DataTypes) => {
       },
       telegram: {
         type: DataTypes.STRING,
-        validate: {
-          isUrl: true,
-        },
+
       },
       discord: {
         type: DataTypes.STRING,
-        validate: {
-          isUrl: true, 
-        },
-      },
-      whatsapp: {
-        type: DataTypes.STRING,
-        validate: {
-          isUrl: true,
-        },
+
       },
       SP: { 
         type: DataTypes.INTEGER,

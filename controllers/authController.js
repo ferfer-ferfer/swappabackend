@@ -7,7 +7,6 @@ exports.oauthSuccess = (req, res) => {
     const isNew = user?.newUser ? "true" : "false";
 
 
-
     // Redirect with both token and newUser=true/false
     const clientURL = process.env.CLIENT_URL || 'http://localhost:3000';
     res.redirect(`${clientURL}/auth-success.html?token=${token}&newUser=${isNew}`);

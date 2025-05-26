@@ -115,6 +115,7 @@ router.get("/classes", authenticateJWT, async (req, res) => {
 //Hedi te3 delete file
 router.delete("/file/:fileId", authenticateJWT, async (req, res) => {
   const fileId = req.params.fileId;
+  
 
   try {
     const file = await ClassFile.findByPk(fileId);
@@ -124,7 +125,7 @@ router.delete("/file/:fileId", authenticateJWT, async (req, res) => {
     }
 
     // Optional: Only allow the uploader to delete the file
-    if (file.user_id !== req.user.ID_Users) {
+    if (file.user_id != req.user.ID_Users) {
       return res
         .status(403)
         .json({ message: "Not authorized to delete this file" });

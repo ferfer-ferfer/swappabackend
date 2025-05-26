@@ -28,7 +28,7 @@ router.put('/complete-profile', authenticateJWT, async (req, res) => {
       value: 1
     });
 
-    return res.status(200).json({ message: 'Profile completed ! +20 SP required.' });
+    return res.status(200).json({ message: 'Profile completed ! +5 SP required.' });
   } catch (error) {
     console.error('Error while completing the profile. :', error);
     return res.status(500).json({ message: 'Internal server error' });
