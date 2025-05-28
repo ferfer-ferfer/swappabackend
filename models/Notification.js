@@ -5,6 +5,10 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
       autoIncrement: true,
     },
+      userId: {
+    type: DataTypes.INTEGER,
+    allowNull: false
+  },
     message: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -18,8 +22,8 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: DataTypes.NOW,
     }
   }, {
-    tableName: 'notifications',  // lowercase plural is common convention
-    timestamps: false,            // if you don't want Sequelize auto timestamps
+    tableName: 'notifications',  
+    timestamps: false,            
   })
 
   return Notification;

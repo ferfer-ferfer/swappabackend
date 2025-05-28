@@ -36,6 +36,12 @@ await User.update(
   { nbr_rate: nbr_rate, rate: rate },
   { where: { ID_Users: receiver_id } }
 );
+    //  Create notification for the receiver
+    await Notification.create({
+      userId: receiver_id,
+      message: ` You received a new rating from a user: "${comment}" (${rating}/5)`,
+      isRead: false
+    });
 
     res.status(201).json(newComment);
   } catch (error) {

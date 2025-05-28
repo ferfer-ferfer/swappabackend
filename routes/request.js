@@ -33,7 +33,12 @@ router.post("/send-request", isAuthenticated, async (req, res) => {
       status_request: 'pending',
       created_at: new Date()
     });
-
+        //  Create notification for the receiver
+    await Notification.create({
+      userId: reciver_id,
+      message: ` You received a new class request for "${skillName}".`,
+      isRead: false
+    });
     res.status(201).json({ message: 'Request sent successfully', request: newRequest });
   } catch (err) {
     console.error('Request creation error:', err);
@@ -187,6 +192,27 @@ router.post('/accept-request/:id', isAuthenticated, async (req, res) => {
       skill_id: request.skill_id
     });
 
+        const acceptedCount = await Request.count({
+      where: {
+        reciver_id: request.reciver_id,
+        status_request: 'accepted'
+      }
+    });
+
+     //  Notify sender that request was accepted
+    await Notification.create({
+      userId: request.sender_id,
+      message: ` Your class request was accepted!`,
+      isRead: false
+    });
+
+    // Award SP if 5 requests have been accepted
+    if (acceptedCount === 5) {
+      await calculateSP(request.sender_id, {
+        type: 'applications',
+        value: 5
+      });
+    }
     res.status(200).json({ message: `Request ${requestId} accepted and class created.`, class: newClass });
 
   } catch (error) {
@@ -212,7 +238,12 @@ router.post('/reject-request/:id', isAuthenticated, async (req, res) => {
     if (!request) {
       return res.status(404).json({ message: 'Request not found or you are not authorized to reject it.' });
     }
-
+        //  Notify sender that request was rejected
+    await Notification.create({
+      userId: request.sender_id,
+      message: ` Your class request was rejected.`,
+      isRead: false
+    });
     // Update status_request to 'rejected'
     await request.update({ status_request: 'rejected' });
 

@@ -2,6 +2,7 @@ require('dotenv').config();
 const { Sequelize, DataTypes } = require('sequelize');
 
 
+
 const sequelize = new Sequelize(
   process.env.DB_DATABASE,
   process.env.DB_USERNAME,
@@ -27,7 +28,6 @@ const Class = require('./class')(sequelize, DataTypes);
 const TeachingSession = require('./teachingsession')(sequelize, DataTypes);
 const Notification = require('./Notification')(sequelize, DataTypes);
 const Comment = require('./comment')(sequelize, DataTypes);
-const Feedback = require('./feedback')(sequelize, DataTypes);
 const ClassFile = require('./Classfile')(sequelize, DataTypes);
 
 
@@ -82,7 +82,6 @@ module.exports = {
   Class,
   Notification,
   Comment,
-  Feedback,
   ClassFile
 };
 
